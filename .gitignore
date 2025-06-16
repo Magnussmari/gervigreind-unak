@@ -315,6 +315,36 @@ reports/
 status_report_*.png
 status_report_*.pdf
 
+# Private project files and admin documents
+files/
+admin/
+projects/
+
+# UNAK specific private content
+**/Budget-Finance/
+**/Contracts/
+**/sensitive/
+**/private/
+**/internal/
+
+# Survey data and results
+**/Data-Analysis/
+**/Results/
+**/raw-data/
+survey_responses.*
+participant_data.*
+
+# Meeting minutes and internal docs
+**/meeting-notes/
+**/internal-comms/
+**/stakeholder-private/
+
+# Financial and budget documents
+budget_*.xlsx
+financial_report_*
+invoice_*
+contract_*
+
 # Notion sync artifacts (if any)
 .notion_cache/
 notion_sync.log

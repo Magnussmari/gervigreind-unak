@@ -1,154 +1,39 @@
-# 🧠 Gervigreind verkefni - Háskóli Akureyrar
+# 🏢 UNAK AI Initiative - File Organization
 
-![UNAK AI](https://img.shields.io/badge/UNAK-AI%20Projects-2E8B57)
-![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-blue)
+## 📁 Folder Structure
 
-> Miðlægt verkefnastjórnunar- og skjalasafn fyrir öll gervigreindartengd verkefni við Háskóla Akureyrar.
+### 🎯 Project Folders
+- **01-BORG-kerfi/** - BORG system development project
+- **02-Leidbeinandi-stefna/** - AI Policy & Guidelines project  
+- **03-Scite-Integration/** - Scite.ai research tool integration
+- **04-Arctic-Tracker/** - Arctic research tracking system
+- **05-Temjum-Taeknina/** - AI education podcast project
+- **06-Starfsmannakoennun/** - Staff AI attitude survey
 
-## 🎯 Markmið
+### 🗂️ Administrative Folders
+- **Admin/Fundir/** - Meeting minutes, agendas, action items
+- **Admin/Reports/** - Monthly reports, analytics, dashboards
+- **Admin/Templates/** - Document templates, forms, guidelines
 
-Þetta repository er aðal-hub fyrir alla AI/ML verkefniþróun við UNAK með áherslu á:
+### 📋 Project Sub-folders (example structure)
+Each project folder should contain:
+- **Contracts/** - Agreements, SOWs, vendor contracts
+- **Documentation/** - Technical docs, user guides, specifications
+- **Budget-Finance/** - Budget tracking, invoices, financial reports
+- **Communications/** - Email threads, stakeholder updates
+- **Deliverables/** - Final outputs, presentations, releases
 
-- **Gegnsæi** í verkefnastjórnun og framþróun
-- **Samræmda skjölun** og best practices
-- **Samþáttun** milli verkefna og tækniframlaga
-- **Opinber aðgengi** að rannsóknarniðurstöðum (þar sem við á)
+## 🔗 Notion Integration
+- **Notion Database**: https://www.notion.so/214e5534e633810a9468cd79c56645ac
+- **UNAK Hub**: https://www.notion.so/UNAK-AI-Initiative-Project-Management-Hub-214e5534e6338101b9e9ed53439aa29b
+- **GitHub Repository**: https://github.com/Magnussmari/gervigreind-unak
 
-## 🚀 Virk verkefni
-
-### 🤖 [BORG kerfið](./verkefni/borg-kerfi/)
-**Byggt á Opinberum Rannsóknum og Gögnum**
-- **Tækni:** Python, FastAPI, RAG, Whisper AI, OpenAI API
-- **Staða:** Alpha útgáfa í daglegri notkun (15-20 starfsmenn)
-- **Eiginleikar:** AI spjallþjón, intelligent skjalaleit, talgreining
-- **Næstu skref:** Beta útgáfa með víðtækari integration
-
-### 📋 [AI Notkunarstefna v1.0](./verkefni/ai-stefna/)
-**Siðferðileg og praktísk AI notkun við háskólann**
-- **Staða:** Samráðsferli í gangi
-- **Lykilatriði:** Data privacy, academic integrity, transparency
-- **Timeline:** Lokafrágang júní-júlí 2025
-- **Útkoma:** Opinber stefna með útfærsluhandbók
-
-### 🔬 [Scite.ai Integration](./verkefni/scite-innleiding/)
-**Smart Citation Analysis fyrir rannsóknir**
-- **Notendur:** Allir rannsakendur og framhaldsnemar
-- **Þjálfun:** 3 workshops + online materials
-- **Áhrif:** Betri rannsóknaferli og citation analysis
-- **Staða:** Útbúið fyrir háskólann
-
-### 🌍 [Arctic Tracker](./verkefni/arctic-tracker/)
-**Arctic species data and climate monitoring**
-- **Tækni:** React frontend, Node.js backend, PostgreSQL
-- **Samstarfsaðili:** Tom Barry (external researcher)
-- **Gögn:** Arctic species data, climate databases
-- **Timeline:** Prótótýpa haust 2025
-
-### 🎙️ [Temjum Tæknina Podcast](./verkefni/hladhvarp/)
-**AI impact on society og technology ethics**
-- **Format:** Vikulegir þættir, 30-45 mínútur
-- **Áhorfendur:** 200-500 hlustendur per þátt
-- **Platform:** Spotify, Apple Podcasts, YouTube
-- **Staða:** 8 þættir útkomnir, season 2 í undirbúningi
-
-### 📊 [Starfsmannakönnun](./verkefni/starfsmannakoennun/)
-**AI Viðhorfsmæling meðal starfsmanna**
-- **Markmið:** Mæla AI þekkingu og viðhorf starfsmanna HA
-- **Aðferð:** Comprehensive survey (10-15 mín)
-- **Þátttakendur:** ~300 starfsmenn HA
-- **Timeline:** Júní-Ágúst 2025
-- **Útkoma:** Grunngögn fyrir AI stefnu þróun
-
-## 📊 Verkefnastöður
-
-| Verkefni | Staða | Progress | Ábyrgðaraðili | Lokadagur |
-|----------|-------|----------|---------------|-----------|
-| BORG | 🟢 Production Alpha | 75% | Magnús Smári | Ongoing |
-| AI Stefna | 🟡 Review | 60% | Magnús Smári | Júlí 2025 |
-| Scite | ✅ Launched | 100% | Magnús Smári | Maí 2025 |
-| Arctic Tracker | 🟡 Development | 40% | Magnús & Tom | Haust 2025 |
-| Podcast | 🟢 Active | 80% | Magnús Smári | Ongoing |
-| Starfsmannakönnun | 🔵 Planning | 5% | Magnús Smári | Ágúst 2025 |
-
-## 🗂️ Skipulag Repository
-
-```
-gervigreind-unak/
-├── 📁 verkefni/                # Verkefnamöppur með skjölun
-│   ├── borg-kerfi/             # BORG AI system
-│   ├── ai-stefna/              # AI Usage Policy
-│   ├── scite-innleiding/       # Scite.ai integration
-│   ├── arctic-tracker/         # Arctic biodiversity tracker
-│   ├── hladhvarp/              # Temjum Tæknina podcast
-│   └── starfsmannakoennun/     # Staff AI attitude survey
-├── 📁 skjol/                   # Sameiginleg skjöl og templates
-│   ├── grunnupplysingar.md
-│   └── sniðmöt/
-├── 📁 .github/                 # GitHub templates og workflows
-│   ├── ISSUE_TEMPLATE/
-│   └── workflows/
-└── 📄 README.md                # Þessi skrá
-```
-
-## 🔗 Tengingar
-
-- **📊 Notion Vinnusvæði:** [UNAK AI Initiative](https://www.notion.so/UNAK-AI-Initiative-Project-Management-Hub-214e5534e6338101b9e9ed53439aa29b)
-- **📈 Project Status:** [GitHub Projects](https://github.com/magnussmari/gervigreind-unak/projects)
-- **🐛 Report Issues:** [GitHub Issues](https://github.com/magnussmari/gervigreind-unak/issues)
-- **📚 Documentation Hub:** [Wiki](https://github.com/magnussmari/gervigreind-unak/wiki)
-
-## 🚀 Getting Started
-
-### Fyrir þátttakendur í verkefnum:
-
-1. **Klánaðu repository:**
-   ```bash
-   git clone https://github.com/magnussmari/gervigreind-unak.git
-   cd gervigreind-unak
-   ```
-
-2. **Skoðaðu verkefnið sem þú ert að vinna í:**
-   ```bash
-   cd verkefni/[verkefnisnafn]
-   ```
-
-3. **Lestu skjölunina:**
-   - README.md í verkefnamöppu
-   - [Contributing Guidelines](./FRAMTÖK.md)
-
-### Fyrir nýja meðlimi:
-
-1. Skoðaðu [Notion Dashboard](https://www.notion.so/UNAK-AI-Initiative-Project-Management-Hub-214e5534e6338101b9e9ed53439aa29b) fyrir current status
-2. Lestu [AI Usage Policy](./verkefni/ai-stefna/) til að skilja guidelines
-3. Komdu á weekly standup meetings (Mánudaga 9:00)
-
-## 🤝 Framlag (Contributing)
-
-Við hvetur alla til að leggja til! Sjá [FRAMTÖK.md](./FRAMTÖK.md) fyrir ítarlegar leiðbeiningar.
-
-### Fljótlegar leiðbeiningar:
-
-1. **Fyrir bugs/tillögur:** Búðu til [Issue](https://github.com/magnussmari/gervigreind-unak/issues/new)
-2. **Fyrir kóðabreytingar:** Fork → Branch → PR
-3. **Fyrir skjöl:** Edit directly og búðu til PR
-
-## 📞 Tengiliður
-
-**Magnús Smári**  
-Verkefnastjóri AI/ML verkefna  
-Háskóli Akureyrar  
-📧 magnuss@unak.is  
-🔗 LinkedIn: [magnussmari](https://linkedin.com/in/magnussmari)
-
-## 📄 License
-
-Þetta verkefni er gefið út undir [MIT License](LICENSE) - sjá LICENSE skrá fyrir nánari upplýsingar.
+## 📊 Quick Stats
+- **Total Projects**: 6 active
+- **Total Budget**: ~5.6M ISK
+- **Team Members**: 15+ across all projects
+- **Timeline**: 2024-2025
 
 ---
-
-<div align="center">
-  <strong>🎯 Building the future of AI at University of Akureyri</strong>
-  <br>
-  <em>Með áherslu á siðferði, gagnsæi og samfélagsáhrif</em>
-</div>
+*Created: June 16, 2025*
+*Last Updated: June 16, 2025*
