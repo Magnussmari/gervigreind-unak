@@ -1,0 +1,57 @@
+name: 🚀 Verkbeiðni
+description: Óskir eftir nýjum eiginleika eða endurbót
+title: "[VERKBEIÐNI]: "
+labels: ["verkbeiðni", "þarf að skoða"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Takk fyrir að leggja til endurbót! Vinsamlegast fylltu út þetta form.
+
+  - type: dropdown
+    id: verkefni
+    attributes:
+      label: Verkefni
+      description: Hvaða verkefni snýr þetta að?
+      options:
+        - BORG kerfið
+        - AI Stefna
+        - Scite innleiðing
+        - Arctic Tracker
+        - Temjum Tæknina
+        - Annað
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: lysing
+    attributes:
+      label: Lýsing á verkbeiðni
+      description: Hvað vilt þú að verði gert?
+      placeholder: Lýstu hvað þú vilt sjá...
+    validations:
+      required: true
+
+  - type: textarea
+    id: rokin
+    attributes:
+      label: Rök fyrir verkbeiðni
+      description: Af hverju er þessi breyting gagnleg?
+      placeholder: Útskýrðu hvers vegna þetta er mikilvægt...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: forgangur
+    attributes:
+      label: Forgangur
+      description: Hversu mikilvæg er þessi verkbeiðni?
+      options:
+        - Lágur
+        - Miðlungsur
+        - Hár
+        - Mjög hár
+      default: 1
+    validations:
+      required: true

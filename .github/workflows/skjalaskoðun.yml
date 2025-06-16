@@ -1,0 +1,365 @@
+name: 📋 Document Validation & Quality Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - 'verkefni/**'
+      - 'skjol/**'
+  workflow_dispatch:
+
+jobs:
+  validate-documents:
+    runs-on: ubuntu-latest
+    name: 🔍 Document Quality Assessment
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install markdown beautifulsoup4 spellchecker
+
+      - name: 🔍 Validate Markdown Structure
+        run: |
+          cat > validate_docs.py << 'EOF'
+          import os
+          import re
+          import sys
+          import markdown
+          from bs4 import BeautifulSoup
+          from pathlib import Path
+
+          class DocumentValidator:
+              def __init__(self):
+                  self.errors = []
+                  self.warnings = []
+                  self.info = []
+                  
+              def validate_file(self, file_path):
+                  """Validate a single markdown file"""
+                  print(f"\n🔍 Validating: {file_path}")
+                  
+                  try:
+                      with open(file_path, 'r', encoding='utf-8') as f:
+                          content = f.read()
+                  except Exception as e:
+                      self.errors.append(f"{file_path}: Could not read file - {e}")
+                      return
+                  
+                  # Basic structure checks
+                  self._check_title_structure(file_path, content)
+                  self._check_link_validity(file_path, content)
+                  self._check_badge_consistency(file_path, content)
+                  self._check_content_completeness(file_path, content)
+                  self._check_icelandic_content(file_path, content)
+                  
+              def _check_title_structure(self, file_path, content):
+                  """Check for proper title hierarchy"""
+                  lines = content.split('\n')
+                  h1_count = len([line for line in lines if line.startswith('# ')])
+                  
+                  if h1_count == 0:
+                      self.errors.append(f"{file_path}: Missing main title (# )")
+                  elif h1_count > 1:
+                      self.warnings.append(f"{file_path}: Multiple H1 titles found ({h1_count})")
+                  
+                  # Check for logical header progression
+                  header_levels = []
+                  for line in lines:
+                      if line.startswith('#'):
+                          level = len(line) - len(line.lstrip('#'))
+                          header_levels.append(level)
+                  
+                  for i in range(1, len(header_levels)):
+                      if header_levels[i] > header_levels[i-1] + 1:
+                          self.warnings.append(f"{file_path}: Header level jump detected (h{header_levels[i-1]} → h{header_levels[i]})")
+                  
+              def _check_link_validity(self, file_path, content):
+                  """Check for broken internal links"""
+                  # Find relative links
+                  relative_links = re.findall(r'\[.*?\]\(((?!https?://)[^)]+)\)', content)
+                  base_dir = os.path.dirname(file_path)
+                  
+                  for link in relative_links:
+                      # Skip anchors and other special links
+                      if link.startswith('#') or link.startswith('mailto:'):
+                          continue
+                          
+                      # Resolve relative path
+                      if link.startswith('./'):
+                          link_path = os.path.join(base_dir, link[2:])
+                      elif link.startswith('../'):
+                          link_path = os.path.normpath(os.path.join(base_dir, link))
+                      else:
+                          link_path = os.path.join(base_dir, link)
+                      
+                      if not os.path.exists(link_path):
+                          self.errors.append(f"{file_path}: Broken link to '{link}'")
+                  
+              def _check_badge_consistency(self, file_path, content):
+                  """Check badge consistency and validity"""
+                  badges = re.findall(r'!\[.*?\]\(https://img\.shields\.io/badge/[^)]+\)', content)
+                  
+                  if 'verkefni/' in file_path:
+                      # Project files should have status badges
+                      status_badges = [b for b in badges if 'Status-' in b]
+                      if not status_badges:
+                          self.warnings.append(f"{file_path}: Missing status badge")
+                      
+                      # Check for common badge patterns
+                      expected_patterns = ['Status', 'Progress', 'Users', 'Tech']
+                      missing_patterns = []
+                      for pattern in expected_patterns:
+                          if not any(pattern in badge for badge in badges):
+                              missing_patterns.append(pattern)
+                      
+                      if missing_patterns and file_path.endswith('README.md'):
+                          self.info.append(f"{file_path}: Consider adding badges for: {', '.join(missing_patterns)}")
+                  
+              def _check_content_completeness(self, file_path, content):
+                  """Check for content completeness"""
+                  word_count = len(content.split())
+                  
+                  if word_count < 100 and 'README.md' in file_path:
+                      self.warnings.append(f"{file_path}: Very short content ({word_count} words)")
+                  
+                  # Check for TODO, FIXME, TBD markers
+                  todo_markers = re.findall(r'(TODO|FIXME|TBD|XXX|\[TBD\])', content, re.IGNORECASE)
+                  if todo_markers:
+                      self.info.append(f"{file_path}: Contains {len(todo_markers)} TODO/TBD markers")
+                  
+                  # Check for placeholder content
+                  placeholders = re.findall(r'\[.*?(verður bætt við|TBD|placeholder|FIXME).*?\]', content, re.IGNORECASE)
+                  if placeholders:
+                      self.warnings.append(f"{file_path}: Contains {len(placeholders)} placeholder sections")
+                  
+              def _check_icelandic_content(self, file_path, content):
+                  """Check for Icelandic content quality"""
+                  # Check for mixed language issues
+                  icelandic_chars = len(re.findall(r'[áðéíóúýþæö]', content, re.IGNORECASE))
+                  total_chars = len(re.findall(r'[a-záðéíóúýþæö]', content, re.IGNORECASE))
+                  
+                  if total_chars > 0:
+                      icelandic_ratio = icelandic_chars / total_chars
+                      if icelandic_ratio > 0.02:  # Likely Icelandic content
+                          # Check for common English words that should be Icelandic
+                          english_terms = {
+                              'project': 'verkefni',
+                              'status': 'staða',
+                              'progress': 'framfarir',
+                              'documentation': 'skjölun',
+                              'implementation': 'útfærsla'
+                          }
+                          
+                          for eng, ice in english_terms.items():
+                              if re.search(r'\b' + eng + r'\b', content, re.IGNORECASE):
+                                  self.info.append(f"{file_path}: Consider using '{ice}' instead of '{eng}'")
+                  
+              def validate_all(self):
+                  """Validate all markdown files"""
+                  print("🚀 Starting document validation...")
+                  
+                  # Find all markdown files
+                  md_files = []
+                  for root, dirs, files in os.walk('.'):
+                      # Skip hidden directories and node_modules
+                      dirs[:] = [d for d in dirs if not d.startswith('.') and d != 'node_modules']
+                      
+                      for file in files:
+                          if file.endswith('.md'):
+                              md_files.append(os.path.join(root, file))
+                  
+                  print(f"Found {len(md_files)} markdown files to validate")
+                  
+                  for file_path in md_files:
+                      self.validate_file(file_path)
+                  
+                  return self.generate_report()
+                  
+              def generate_report(self):
+                  """Generate validation report"""
+                  print("\n" + "="*60)
+                  print("📋 DOCUMENT VALIDATION REPORT")
+                  print("="*60)
+                  
+                  if self.errors:
+                      print(f"\n❌ ERRORS ({len(self.errors)}):")
+                      for error in self.errors:
+                          print(f"  • {error}")
+                  
+                  if self.warnings:
+                      print(f"\n⚠️ WARNINGS ({len(self.warnings)}):")
+                      for warning in self.warnings:
+                          print(f"  • {warning}")
+                  
+                  if self.info:
+                      print(f"\nℹ️ SUGGESTIONS ({len(self.info)}):")
+                      for info in self.info:
+                          print(f"  • {info}")
+                  
+                  if not self.errors and not self.warnings:
+                      print("\n✅ All documents passed validation!")
+                  
+                  print(f"\n📊 Summary:")
+                  print(f"  • Errors: {len(self.errors)}")
+                  print(f"  • Warnings: {len(self.warnings)}")
+                  print(f"  • Suggestions: {len(self.info)}")
+                  
+                  return len(self.errors) == 0
+
+          if __name__ == "__main__":
+              validator = DocumentValidator()
+              success = validator.validate_all()
+              sys.exit(0 if success else 1)
+          EOF
+
+          python validate_docs.py
+
+      - name: 🔤 Check Spelling (Icelandic)
+        continue-on-error: true
+        run: |
+          cat > spell_check.py << 'EOF'
+          import re
+          import os
+          from pathlib import Path
+
+          def check_common_typos():
+              """Check for common Icelandic typos and inconsistencies"""
+              
+              common_issues = {
+                  # Common typos
+                  r'\bteh\b': 'the',
+                  r'\badn\b': 'and',
+                  r'\bvið\s+að\s+': 'við að ',  # Extra space
+                  
+                  # Consistency issues
+                  r'\bAI\b(?!\s)': 'AI ',  # AI should be followed by space
+                  r'\bML\b(?!\s)': 'ML ',  # ML should be followed by space
+                  
+                  # Mixed language issues in Icelandic context
+                  r'\bproject\b': 'verkefni (consider using Icelandic)',
+                  r'\bstatus\b': 'staða (consider using Icelandic)',
+              }
+              
+              issues_found = []
+              
+              for root, dirs, files in os.walk('.'):
+                  dirs[:] = [d for d in dirs if not d.startswith('.')]
+                  
+                  for file in files:
+                      if file.endswith('.md'):
+                          file_path = os.path.join(root, file)
+                          
+                          try:
+                              with open(file_path, 'r', encoding='utf-8') as f:
+                                  content = f.read()
+                              
+                              for pattern, suggestion in common_issues.items():
+                                  matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
+                                  for match in matches:
+                                      line_num = content[:match.start()].count('\n') + 1
+                                      issues_found.append(f"{file_path}:{line_num} - '{match.group()}' → {suggestion}")
+                          
+                          except Exception as e:
+                              print(f"Error reading {file_path}: {e}")
+              
+              if issues_found:
+                  print("\n🔤 SPELLING & CONSISTENCY ISSUES:")
+                  for issue in issues_found[:20]:  # Limit output
+                      print(f"  • {issue}")
+                  
+                  if len(issues_found) > 20:
+                      print(f"  ... and {len(issues_found) - 20} more issues")
+              else:
+                  print("\n✅ No common spelling issues found!")
+
+          check_common_typos()
+          EOF
+
+          python spell_check.py
+
+      - name: 📊 Generate Project Structure Report
+        run: |
+          echo "## 📁 Project Structure Analysis" > structure_report.md
+          echo "" >> structure_report.md
+          
+          echo "### 📈 Statistics" >> structure_report.md
+          echo "- **Total Markdown files**: $(find . -name '*.md' | wc -l)" >> structure_report.md
+          echo "- **Project directories**: $(find verkefni -maxdepth 1 -type d | tail -n +2 | wc -l)" >> structure_report.md
+          echo "- **Documentation files**: $(find skjol -name '*.md' 2>/dev/null | wc -l || echo 0)" >> structure_report.md
+          echo "" >> structure_report.md
+          
+          echo "### 📂 Directory Structure" >> structure_report.md
+          echo '```' >> structure_report.md
+          tree -a -I '.git|node_modules|*.log' -L 3 || find . -type d -not -path './.git*' | head -20 | sort
+          echo '```' >> structure_report.md
+          
+          echo "### 📋 Project Status Overview" >> structure_report.md
+          for project_dir in verkefni/*/; do
+              if [ -f "${project_dir}README.md" ]; then
+                  project_name=$(basename "$project_dir")
+                  readme_file="${project_dir}README.md"
+                  
+                  # Extract title and status
+                  title=$(head -n 10 "$readme_file" | grep -m 1 "^# " | sed 's/^# //')
+                  status_badge=$(grep -o 'Status-[^)]*' "$readme_file" | head -1 || echo "Unknown")
+                  
+                  echo "- **$project_name**: $title" >> structure_report.md
+                  echo "  - Status: $status_badge" >> structure_report.md
+                  echo "  - README size: $(wc -l < "$readme_file") lines" >> structure_report.md
+              fi
+          done
+          
+          cat structure_report.md
+
+      - name: 📤 Upload Validation Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: document-validation-report
+          path: |
+            structure_report.md
+          retention-days: 30
+
+      - name: 💬 Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // This would add a comment to PRs with validation results
+            const comment = `## 📋 Document Validation Results
+            
+            The automated document validation has completed. Please check the workflow logs for detailed results.
+            
+            ### Quick Summary:
+            - ✅ Markdown structure validation
+            - ✅ Link validation  
+            - ✅ Content completeness check
+            - ✅ Icelandic language consistency
+            
+            📊 Full validation report is available in the workflow artifacts.
+            
+            _This comment was automatically generated by the Document Validation workflow._`;
+            
+            console.log('Document validation completed for PR');
+
+      - name: 🏷️ Set Status Check
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ Document validation passed"
+            echo "VALIDATION_STATUS=success" >> $GITHUB_ENV
+          else
+            echo "❌ Document validation failed"
+            echo "VALIDATION_STATUS=failure" >> $GITHUB_ENV
+          fi

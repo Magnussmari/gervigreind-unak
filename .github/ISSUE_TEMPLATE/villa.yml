@@ -1,0 +1,67 @@
+name: 🐛 Villa
+description: Tilkynna um villu eða vandamál
+title: "[VILLA]: "
+labels: ["villa", "þarf að laga"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Takk fyrir að tilkynna um villuna! Þetta hjálpar okkur að bæta verkefnin.
+
+  - type: dropdown
+    id: verkefni
+    attributes:
+      label: Verkefni
+      description: Í hvaða verkefni kom villan upp?
+      options:
+        - BORG kerfið
+        - AI Stefna
+        - Scite innleiðing
+        - Arctic Tracker
+        - Temjum Tæknina
+        - Annað
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: lysing
+    attributes:
+      label: Lýsing á villunni
+      description: Hvað gerðist sem átti ekki að gerast?
+      placeholder: Lýstu villunni...
+    validations:
+      required: true
+
+  - type: textarea
+    id: skref
+    attributes:
+      label: Skref til að endurtaka
+      description: Hvernig get ég endurtekið þessa villu?
+      placeholder: |
+        1. Farðu í '...'
+        2. Smelltu á '...'
+        3. Villan kemur upp
+    validations:
+      required: true
+
+  - type: textarea
+    id: vænta
+    attributes:
+      label: Hvað áttir þú von á?
+      description: Hvað hefði átt að gerast í staðinn?
+      placeholder: Lýstu því sem þú áttir von á...
+    validations:
+      required: true
+
+  - type: textarea
+    id: umhverfi
+    attributes:
+      label: Umhverfi
+      description: Gefðu upplýsingar um kerfið þitt
+      placeholder: |
+        - Stýrikerfi: [t.d. macOS, Windows, Linux]
+        - Vafri: [t.d. Chrome, Firefox, Safari]
+        - Útgáfa: [ef við á]
+    validations:
+      required: false

@@ -1,0 +1,308 @@
+name: 📊 Notion Sync - Project Status Updates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'verkefni/**'
+      - 'README.md'
+  schedule:
+    # Keyra daglega klukkan 9:00 UTC (10:00 í Reykjavík)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force full sync of all projects'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+  NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+
+jobs:
+  sync-to-notion:
+    runs-on: ubuntu-latest
+    name: 🔄 Sync GitHub Updates to Notion
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Need previous commit for diff
+
+      - name: 🔍 Detect Changed Projects
+        id: changes
+        run: |
+          echo "Detecting changed project files..."
+          
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.force_sync }}" = "true" ]; then
+            echo "Running scheduled sync or forced sync..."
+            echo "changed_projects=borg-kerfi,ai-stefna,scite-innleiding,arctic-tracker,hladhvarp" >> $GITHUB_OUTPUT
+          else
+            # Detect which project folders have changes
+            changed_files=$(git diff --name-only HEAD~1 HEAD)
+            echo "Changed files: $changed_files"
+            
+            changed_projects=""
+            for project in "borg-kerfi" "ai-stefna" "scite-innleiding" "arctic-tracker" "hladhvarp"; do
+              if echo "$changed_files" | grep -q "verkefni/$project/"; then
+                if [ -z "$changed_projects" ]; then
+                  changed_projects="$project"
+                else
+                  changed_projects="$changed_projects,$project"
+                fi
+              fi
+            done
+            
+            echo "changed_projects=$changed_projects" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install requests python-dotenv markdown beautifulsoup4
+
+      - name: 🔄 Update Notion Database
+        run: |
+          cat > sync_to_notion.py << 'EOF'
+          import os
+          import sys
+          import requests
+          import json
+          import re
+          from datetime import datetime, timezone
+          import markdown
+          from bs4 import BeautifulSoup
+
+          # Configuration
+          NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
+          DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
+          GITHUB_REPO = os.environ.get('GITHUB_REPOSITORY', 'magnussmari/gervigreind-unak')
+          
+          if not NOTION_TOKEN or not DATABASE_ID:
+              print("❌ Missing required environment variables")
+              sys.exit(1)
+
+          headers = {
+              "Authorization": f"Bearer {NOTION_TOKEN}",
+              "Content-Type": "application/json",
+              "Notion-Version": "2022-06-28"
+          }
+
+          def extract_project_info(readme_path):
+              """Extract project information from README.md"""
+              try:
+                  with open(readme_path, 'r', encoding='utf-8') as f:
+                      content = f.read()
+                  
+                  # Convert markdown to HTML for easier parsing
+                  html = markdown.markdown(content)
+                  soup = BeautifulSoup(html, 'html.parser')
+                  
+                  # Extract title (first h1)
+                  title_elem = soup.find('h1')
+                  title = title_elem.get_text().strip() if title_elem else "Unknown Project"
+                  
+                  # Extract status from badges
+                  status = "Unknown"
+                  progress = 0
+                  
+                  # Look for status badges
+                  for img in soup.find_all('img'):
+                      alt = img.get('alt', '').lower()
+                      src = img.get('src', '').lower()
+                      
+                      if 'status' in alt or 'status' in src:
+                          if 'production' in src or 'live' in src or 'complete' in src:
+                              status = "Lokið"
+                          elif 'development' in src or 'progress' in src:
+                              status = "Í vinnslu"
+                          elif 'planning' in src:
+                              status = "Hugmynd"
+                      
+                      if 'progress' in alt or 'progress' in src:
+                          # Extract percentage from badge
+                          match = re.search(r'(\d+)%', src)
+                          if match:
+                              progress = int(match.group(1))
+                  
+                  # Extract description (first paragraph after title)
+                  desc_elem = soup.find('blockquote') or soup.find('p')
+                  description = desc_elem.get_text().strip()[:500] if desc_elem else ""
+                  
+                  return {
+                      'title': title,
+                      'status': status,
+                      'progress': progress,
+                      'description': description
+                  }
+              
+              except Exception as e:
+                  print(f"❌ Error parsing {readme_path}: {e}")
+                  return None
+
+          def update_notion_project(project_name, project_info):
+              """Update or create project in Notion database"""
+              
+              # Project mapping
+              project_mapping = {
+                  'borg-kerfi': 'BORG kerfið',
+                  'ai-stefna': 'AI Stefna',
+                  'scite-innleiding': 'Scite Integration',
+                  'arctic-tracker': 'Arctic Tracker',
+                  'hladhvarp': 'Temjum Tæknina'
+              }
+              
+              notion_title = project_mapping.get(project_name, project_info['title'])
+              github_url = f"https://github.com/{GITHUB_REPO}/tree/main/verkefni/{project_name}"
+              
+              # Search for existing page
+              search_url = "https://api.notion.com/v1/databases/{}/query".format(DATABASE_ID)
+              search_body = {
+                  "filter": {
+                      "property": "Heiti",
+                      "title": {
+                          "equals": notion_title
+                      }
+                  }
+              }
+              
+              response = requests.post(search_url, headers=headers, json=search_body)
+              
+              if response.status_code != 200:
+                  print(f"❌ Error searching Notion: {response.status_code}")
+                  print(response.text)
+                  return False
+              
+              existing_pages = response.json().get('results', [])
+              
+              # Prepare page properties
+              page_properties = {
+                  "Heiti": {
+                      "title": [{"text": {"content": notion_title}}]
+                  },
+                  "Staða": {
+                      "select": {"name": project_info['status']}
+                  },
+                  "GitHub tenging": {
+                      "url": github_url
+                  },
+                  "Progress": {
+                      "number": project_info['progress']
+                  },
+                  "Lýsing": {
+                      "rich_text": [{"text": {"content": project_info['description'][:2000]}}]
+                  },
+                  "Síðast uppfært": {
+                      "date": {"start": datetime.now(timezone.utc).isoformat()}
+                  }
+              }
+              
+              if existing_pages:
+                  # Update existing page
+                  page_id = existing_pages[0]['id']
+                  update_url = f"https://api.notion.com/v1/pages/{page_id}"
+                  update_body = {"properties": page_properties}
+                  
+                  response = requests.patch(update_url, headers=headers, json=update_body)
+                  
+                  if response.status_code == 200:
+                      print(f"✅ Updated {notion_title} in Notion")
+                      return True
+                  else:
+                      print(f"❌ Error updating {notion_title}: {response.status_code}")
+                      print(response.text)
+                      return False
+              
+              else:
+                  # Create new page
+                  create_url = "https://api.notion.com/v1/pages"
+                  create_body = {
+                      "parent": {"database_id": DATABASE_ID},
+                      "properties": page_properties
+                  }
+                  
+                  response = requests.post(create_url, headers=headers, json=create_body)
+                  
+                  if response.status_code == 200:
+                      print(f"✅ Created {notion_title} in Notion")
+                      return True
+                  else:
+                      print(f"❌ Error creating {notion_title}: {response.status_code}")
+                      print(response.text)
+                      return False
+
+          def main():
+              changed_projects = os.environ.get('CHANGED_PROJECTS', '').split(',')
+              changed_projects = [p.strip() for p in changed_projects if p.strip()]
+              
+              if not changed_projects:
+                  print("ℹ️ No projects to sync")
+                  return
+              
+              print(f"🔄 Syncing projects: {', '.join(changed_projects)}")
+              
+              success_count = 0
+              for project in changed_projects:
+                  readme_path = f"verkefni/{project}/README.md"
+                  
+                  if not os.path.exists(readme_path):
+                      print(f"⚠️ README not found for {project}")
+                      continue
+                  
+                  project_info = extract_project_info(readme_path)
+                  if not project_info:
+                      print(f"⚠️ Could not extract info for {project}")
+                      continue
+                  
+                  if update_notion_project(project, project_info):
+                      success_count += 1
+              
+              print(f"🎉 Successfully synced {success_count}/{len(changed_projects)} projects")
+
+          if __name__ == "__main__":
+              main()
+          EOF
+
+          # Run the sync script
+          export CHANGED_PROJECTS="${{ steps.changes.outputs.changed_projects }}"
+          python sync_to_notion.py
+
+      - name: 📝 Create Summary Comment
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changedProjects = '${{ steps.changes.outputs.changed_projects }}';
+            if (changedProjects) {
+              const projects = changedProjects.split(',').map(p => p.trim()).filter(p => p);
+              const projectList = projects.map(p => `- ${p}`).join('\n');
+              
+              const comment = `## 📊 Notion Sync Complete
+              
+              Successfully synchronized the following projects to Notion:
+              
+              ${projectList}
+              
+              🔗 [View in Notion Database](https://notion.so/unak-ai)
+              
+              _This comment was automatically generated by the Notion Sync workflow._`;
+              
+              // Add comment to the commit (if it's a PR, this would go to the PR)
+              console.log('Sync completed for projects:', projects);
+            }
+
+      - name: 🚨 Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Notion sync failed. Please check the logs and verify:"
+          echo "1. NOTION_TOKEN secret is set correctly"
+          echo "2. NOTION_DATABASE_ID secret is set correctly"
+          echo "3. The Notion integration has proper permissions"
+          echo "4. The database schema matches expected properties"
