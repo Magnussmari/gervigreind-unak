@@ -52,6 +52,14 @@
 - **Platform:** Spotify, Apple Podcasts, YouTube
 - **Staða:** 8 þættir útkomnir, season 2 í undirbúningi
 
+### 📊 [Starfsmannakönnun](./verkefni/starfsmannakoennun/)
+**AI Viðhorfsmæling meðal starfsmanna**
+- **Markmið:** Mæla AI þekkingu og viðhorf starfsmanna HA
+- **Aðferð:** Comprehensive survey (10-15 mín)
+- **Þátttakendur:** ~300 starfsmenn HA
+- **Timeline:** Júní-Ágúst 2025
+- **Útkoma:** Grunngögn fyrir AI stefnu þróun
+
 ## 📊 Verkefnastöður
 
 | Verkefni | Staða | Progress | Ábyrgðaraðili | Lokadagur |
@@ -61,29 +69,31 @@
 | Scite | ✅ Launched | 100% | Magnús Smári | Maí 2025 |
 | Arctic Tracker | 🟡 Development | 40% | Magnús & Tom | Haust 2025 |
 | Podcast | 🟢 Active | 80% | Magnús Smári | Ongoing |
+| Starfsmannakönnun | 🔵 Planning | 5% | Magnús Smári | Ágúst 2025 |
 
 ## 🗂️ Skipulag Repository
 
 ```
 gervigreind-unak/
-├── 📁 verkefni/          # Verkefnamöppur með skjölun
-│   ├── borg-kerfi/       # BORG AI system
-│   ├── ai-stefna/        # AI Usage Policy
-│   ├── scite-innleiding/ # Scite.ai integration
-│   ├── arctic-tracker/   # Arctic biodiversity tracker
-│   └── hladhvarp/        # Temjum Tæknina podcast
-├── 📁 skjol/             # Sameiginleg skjöl og templates
+├── 📁 verkefni/                # Verkefnamöppur með skjölun
+│   ├── borg-kerfi/             # BORG AI system
+│   ├── ai-stefna/              # AI Usage Policy
+│   ├── scite-innleiding/       # Scite.ai integration
+│   ├── arctic-tracker/         # Arctic biodiversity tracker
+│   ├── hladhvarp/              # Temjum Tæknina podcast
+│   └── starfsmannakoennun/     # Staff AI attitude survey
+├── 📁 skjol/                   # Sameiginleg skjöl og templates
 │   ├── grunnupplysingar.md
 │   └── sniðmöt/
-├── 📁 .github/           # GitHub templates og workflows
+├── 📁 .github/                 # GitHub templates og workflows
 │   ├── ISSUE_TEMPLATE/
 │   └── workflows/
-└── 📄 README.md          # Þessi skrá
+└── 📄 README.md                # Þessi skrá
 ```
 
 ## 🔗 Tengingar
 
-- **📊 Notion Vinnusvæði:** [AI Project Dashboard](https://notion.so/unak-ai) *(verður bætt við)*
+- **📊 Notion Vinnusvæði:** [UNAK AI Initiative](https://www.notion.so/UNAK-AI-Initiative-Project-Management-Hub-214e5534e6338101b9e9ed53439aa29b)
 - **📈 Project Status:** [GitHub Projects](https://github.com/magnussmari/gervigreind-unak/projects)
 - **🐛 Report Issues:** [GitHub Issues](https://github.com/magnussmari/gervigreind-unak/issues)
 - **📚 Documentation Hub:** [Wiki](https://github.com/magnussmari/gervigreind-unak/wiki)
@@ -109,7 +119,7 @@ gervigreind-unak/
 
 ### Fyrir nýja meðlimi:
 
-1. Skoðaðu [Notion Dashboard](https://notion.so/unak-ai) fyrir current status
+1. Skoðaðu [Notion Dashboard](https://www.notion.so/UNAK-AI-Initiative-Project-Management-Hub-214e5534e6338101b9e9ed53439aa29b) fyrir current status
 2. Lestu [AI Usage Policy](./verkefni/ai-stefna/) til að skilja guidelines
 3. Komdu á weekly standup meetings (Mánudaga 9:00)
 
